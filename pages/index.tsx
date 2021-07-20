@@ -1,6 +1,6 @@
 import Head from "next/head";
 import React, { FC, useState } from "react";
-import api, { User } from "../api";
+import client, { User } from "../api";
 import { LoginResponse } from "./api/login";
 
 const HomePage: FC = () => {
@@ -12,7 +12,7 @@ const HomePage: FC = () => {
     try {
       setError("");
 
-      const response = await api.post<LoginResponse>("/login", {
+      const response = await client.post<LoginResponse>("/login", {
         email: "walker.jlg@gmail.com",
       });
 
@@ -22,8 +22,17 @@ const HomePage: FC = () => {
     }
   };
 
-  const onLogout = () => {
-    localStorage.removeItem("accessToken");
+  const onLogout = async () => {
+    try {
+      setError("");
+
+      await client.post("/logout");
+
+      setUser(undefined);
+      localStorage.removeItem("accessToken");
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   const onGetProfile = async () => {
@@ -31,7 +40,7 @@ const HomePage: FC = () => {
       setError("");
       setUser(undefined);
 
-      const response = await api.get<User>("/profile");
+      const response = await client.get<User>("/profile");
 
       setUser(response.data);
     } catch (e) {
